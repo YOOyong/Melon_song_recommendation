@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+
+{% block contents %}
+
+<div id="layoutSidenav_content">
+    <main>
+        
+            <h1 class='melon text-center pb-5'>Music DNA</h1>
+
+    
+            <!-- 가수 출력 -->
+            <div class="row justify-content-center pt-5">
+                <div class = "col-xl-10 col-11">
+                        <h2 class = "melon">{{object.username}}님의 선호 가수</h1>
+                        <hr>
+                    <div class="scrolling-wrapper scrllbar-style pt-2">
+                        {% for artist in artists %}
+                            <div class="card bg-dark bg-opacity-0 border-0 ps-1 pe-3" style="width: 12rem;" >
+                            <img class="card-img-top rounded-circle" src="{{ artist.1 }}" alt="Card image cap" width="208px" height="180px">
+                            <div class="card-body">
+                            <div class = "cut-text text-center">
+                            <span>{{ artist.0 }}</span></div></div></div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <br><br>
+            <!-- 노래 출력 -->
+            <div class="row justify-content-center pt-3">
+                <div class = "col-xl-10 col-11">
+                    <h2 class = "melon">{{object.username}}님의 선호 노래</h1>
+                    <hr>
+                    <div class="overflow-auto" style ="max-height: 700px; background-color: rgba(210,210,210)">
+                        <div class='d-flex flex-wrap'>
+                            {% for song in object.user_playlist.playlist.songs.all %}
+                                <a href="https://www.melon.com/album/detail.htm?albumId={{song.album_id}}" target="_blank"><div class="card bg-dark bg-opacity-0 border-0 pb-1 cut-text" style="width: 19rem;">
+                                <div class="d-flex flex-row align-items-center">
+                                <img src="{{song.thumb_url}}" width="50px" height="50px"  onerror="imageOnError(this)";>
+                                <div style = "color : white"><div class ="ps-1">
+                                <div><span>{{ song.song_name }}</span></div><div><span style="font-size: 0.75rem;">{{ song.artists.0.artist_name }}</span></div>
+                                </div></div></div></div></a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+
+        </div>
+    </main>
+  
+</div>
+  <br>
+  <div class ='row justify-content-center' style = 'display: flex;'>
+    <div class = 'col-xl-7 col-11'>
+        <h2 class="melon">선호 가수 분포<h2>
+          <hr>
+        <canvas id="artist-chart" data-url="{{ request.path }}/info"></canvas>
+    </div>
+    <div class='col-xl-3 col-11'>
+        <h2 class='melon'>선호장르 비율</h2>
+          <hr>
+      <canvas id="genre-chart" data-url="{{ request.path }}/info"></canvas>
+    </div>
+  </div>
+  <div class ='row justify-content-center'>
+    <div class ='col-xl-10 col-11'>
+        <h2 class='melon'>시대별 분포</h2>
+          <hr>
+      <div style = "height: 400px;">
+        <canvas id="year-chart" data-url="{{ request.path }}/info"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+ 
+    $(document).ready(function () {
+
+      var $artistChart = $("#artist-chart");
+      var $genrePie = $("#genre-chart");
+      var $yearLine = $("#year-chart")
+      $.ajax({
+        url: $artistChart.data("url"),
+        success: function (data) {
+
+          var ctx = $artistChart[0].getContext("2d");
+          var ctx2 = $genrePie[0].getContext("2d");
+          var ctx3 = $yearLine[0].getContext("2d");
+
+          new Chart(ctx, {
+            type: 'bar',
+            options: {
+              indexAxis: 'y',
+              responsive: true,
+              legend: {
+                position: 'right',
+              },
+            },
+            data: {
+              labels: data.artist_label,
+              datasets: [{
+                label: 'percent',
+                data: data.artist_count,
+                backgroundColor : "rgba(0, 205 , 60, 0.7)",
+                borderRadius: 15,
+                borderSkipped: false,
+              }]          
+            },
+          });
+
+          new Chart(ctx2, {
+            type: 'pie',
+            options: {
+              responsive: true,
+              legend: {
+                position: 'right',
+              },
+            },
+            data: {
+              labels: data.genre_label,
+              datasets: [{
+                label: 'percent',
+                data: data.genre_count,
+                backgroundColor: data.colors,
+              }]          
+            },
+          });
+
+          
+          new Chart(ctx3, {
+            type: 'line',
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              legend: {
+                position: 'right',
+              },
+            },
+            data: {
+              labels: data.year_label,
+              datasets: [{
+                label: 'percent',
+                data: data.year_count,
+                backgroundColor: "rgba(250,0,0,0.5)",
+                borderColor: "rgba(250,0,0,0.3)",
+                cubicInterpolationMode: 'monotone',
+                tension: 0.4,
+                fill: true,
+              }]          
+            },
+          });
+
+
+
+        }
+      });
+
+    });
+
+  </script>
+
+
+  
+
+
+
+
+{% endblock %}
+
+
+
+

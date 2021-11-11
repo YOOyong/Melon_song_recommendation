@@ -1,0 +1,108 @@
+
+<html>
+<head>
+  <title>멜론 음악추천</title>  
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-211781525-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-211781525-1');
+</script>
+
+  <!-- Google Tag Manager -->
+  {% load gtm_tags %}
+  {% gtm_head %}
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-MQBMVR6');</script>
+    <!-- End Google Tag Manager -->
+  {% load static %}
+  <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+  <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+  <link rel="script"/>
+  <link href="{% static 'css/styles.css' %}" rel="stylesheet"/>
+  <script src="https://kit.fontawesome.com/c22b70a7d4.js" crossorigin="anonymous"></script>  
+  {% block header %}
+  {% endblock%}
+  <style type="stylesheet">
+  @font-face{
+      font-family: 'Danjunghae';
+      src: url("{% static 'css/Cafe24Danjunghae.ttf' %}") format("truetype")}
+
+   body{
+    font-family: 'Danjunghae';
+   }
+
+  </style>
+</head>
+
+<body style="background-color:rgba(250,250,250); background-attachment: fixed; background-size: cover;">
+  <!-- 네비게이션 바 하핳-->
+  <nav class="navbar navbar-expand-lg navbar-light">
+      <a class="navbar-brand" href="{% url 'index' %}">ForU</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01"
+          aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarColor01">
+          <ul class="navbar-nav">
+              <!-- <li class="nav-item active">
+                  <a class="nav-link" href="#">About</a>
+              </li> -->
+              <li role='separator' class="nav-item divider"></li>
+          </ul>
+          <ul class="navbar-nav ms-auto pe-3">
+              {%if user.is_authenticated %}
+              <li class="nav-item">
+                  <a class="nav-link" href = "{% url 'users:user_info' user.username %}" style="color: black;">{{user.username}}님</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link" href = "{% url 'users:logout'  %}" style="color: black;">Logout</a>
+              </li>
+              {%else%}
+              <li class="nav-item">
+                  <a class="nav-link" href = "{% url 'users:login'  %}" style="color: black;">Log in</a>
+              </li>
+              {%endif%}
+          </ul>
+      </div>
+  </nav>
+
+  
+    {% block contents %}
+    {% endblock %}
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+    crossorigin="anonymous"></script>
+
+
+
+</body>
+    {% gtm_body %}
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MQBMVR6"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+<br><br><br><br>
+
+<footer>
+
+</footer>>
+
+</html>

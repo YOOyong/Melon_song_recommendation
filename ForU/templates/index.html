@@ -1,0 +1,639 @@
+{% extends "base.html" %}
+{%load static%}
+{%block contents%}
+    <script type="text/javascript">
+
+        function tag_btn_click(tag){
+            
+            let origin_val =  document.getElementById('input_tag').value;
+            
+            let words = origin_val.split(' ');
+
+            if (origin_val.length == 0){
+                document.getElementById('input_tag').value = origin_val + tag;
+            }else{
+                if (words.includes(tag)){
+                    document.getElementById('input_tag').value = origin_val;
+                }else{
+                    document.getElementById('input_tag').value = origin_val + ' ' + tag;
+                }
+            }
+        }
+        
+
+        // 이미지 가져올때 404가 발생하면 수행할 함수
+        function imageOnError(img_tag){
+
+            // onerror가 다시 수행되지 않도록 onerror를 비워줌
+            img_tag.onerror="";
+
+            // img 태그의 src옵션을 가져옴
+            let origin_val = img_tag.src;
+
+            //문제가 되는 부분빼고 나머지 부분을 슬라이싱
+            let left = origin_val.slice(0,29);
+            let right = origin_val.slice(29,);
+
+            // src에 문자 2를 추가하고 return
+            img_tag.src = left+'2'+right;
+
+            return true
+        }
+
+
+        function getsongs(playlist_id){
+        
+            let httpRequest = new XMLHttpRequest();
+            httpRequest.open("GET",'show_playlist_api?playlist_id='+playlist_id)
+            httpRequest.send()
+            httpRequest.onreadystatechange = function(){
+                if (httpRequest.readyState == 4 && httpRequest.status ==200){
+                    data_parsed = JSON.parse(httpRequest.response)
+                    
+                    document.getElementById('show_songs').innerHTML = ''
+                    
+                    let table = document.createElement("div")
+                    table.style.borderWidth = "10px"
+                    table.style.width = "100%"
+                    
+                    document.getElementById('show_songs').appendChild(table)
+                    for(let i=0; i<data_parsed.length-1; i++){
+                        let tr = document.createElement("div")
+                        let image_td = document.createElement("div")
+                        let song_name_td = document.createElement("div")
+                        let artist_name_td = document.createElement("div")
+                        let img = document.createElement("img")
+
+                        tr.style.display = "grid"
+                        tr.style.gridTemplateColumns = "40% 30% 30%"
+                        tr.style.gridTemplateRows = "100%"
+                        
+                        image_td.style.maxWidth = "40%"
+                        image_td.style.position = "relative"
+
+                        img.setAttribute("class","album_arts")
+                        img.setAttribute("src",data_parsed[i]['thumb_url'])
+                        img.setAttribute("onerror","imageOnError(this);")
+
+                        img.style.maxWidth = "100%"
+
+                        artist_name_td.innerText = data_parsed[i]['artist_name']
+                        song_name_td.innerText = data_parsed[i]['song_name']
+
+                        artist_name_td.style.color = "white"
+                        song_name_td.style.color = "white"
+
+
+                        tr.appendChild(image_td)
+                        tr.appendChild(artist_name_td)
+                        tr.appendChild(song_name_td)
+                        image_td.appendChild(img)
+                        table.appendChild(tr)
+
+                    }
+                 
+                }
+            }
+            
+
+            
+        }
+    </script>
+    <!----------- 로고랑 사이트 제목 ----------->
+    <div style="height: 100px;">
+        <div class="d-flex align-items-center;">
+            <div class="d-flex align-items-center"
+                style="position: absolute; left: 50%; transform: translateX(-50%); margin-top: 20px">
+                <img src="{% static 'images/melon_logo.jpg' %}">
+            </div>
+        </div>
+    </div>
+    <div id="layoutSidenav_content">
+        <main>
+            <div class="container-fluid px-3">
+                <!----------- 검색창 ----------->
+                <div class="row justify-content-center">
+                    <div class="col-11 col-xl-5" style="height: 100px;">
+                        <div class="d-flex align-items-center" style="height:100%">
+                            <input class="form-control" type="search" style="height: 55px" 
+                                aria-label="Search"  id="input_tag">
+                            <button id="searchBtn" class="btn btn-outline-success flex-shrink-0"
+                                style="height: 55px; width: 60px" type="submit">검색</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row justify-content-center pb-1">
+                    <div class="col-12 col-xl-9 text-center" style="width: 100%" id="mytag">
+                        
+                    </div>
+                </div>
+
+
+
+                <!----------- 인기태그 ----------->
+                <div class="row justify-content-center pb-1">
+                    <div class="col-12 col-xl-9 text-center" style="width: 100%" >
+                        <span id='tag_recom_name'></span>
+                        <div class="btn-group" id = 'tag_buttons'></div>
+                    </div>
+                </div>
+
+                <!--검색결과 -->
+                <div class ='row justify-content-center pb-5'>  
+                    <div class="col-xl-10 music-box">
+                        <div id="tag_results"class='d-flex flex-wrap'>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                <!------------ 최신추천 ------------>
+                <div class="row">
+                    
+                    <div class="col-xl-1">
+                    </div>
+                    <div class="col-xl-10">
+                        <h1 class = "melon">최신 발매곡 TOP 30</h1>
+                        &nbsp;<span style="color:rgba(200, 200, 200)">최근 발매곡 중 플리에 가장 많이 추가된 노래입니다.</span>
+                        <div class="card mb-5" style="background: rgba(0, 0, 0, 0.2);">
+                            <div class="card-body">
+                                <canvas width="100%" height="20"></canvas>
+                                <div class="row" id="tsong_list" style="color : white;">
+                                 
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-1">
+                    </div>
+                </div>
+
+                <!-- 추천가수 리스트 -->
+                <div id="rec_singer" class="row justify-content-center -1">
+                    <div class = "col-xl-10 col-12">
+                        {% if user.is_authenticated %}
+                            <h1 class = "melon">{{user.username}}님을 위한 추천 가수</h1>
+                        {% else %}
+                            <h1 class = "melon">추천 가수</h1>
+                        {%endif%}
+                        <hr>
+                        <div id = "singer_results" class="scrolling-wrapper scrllbar-style pt-2">
+                            
+                    
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- 추천 가수 노래 리스트 -->
+                <div id="rec_singer_song" class="row justify-content-center pt-3">
+                    <div class = "col-xl-10 col-12">
+                        <h1 class = "melon">추천 가수 플레이리스트</h1>
+                        <hr>
+                        <div id = "singer_song_results" class="scrolling-wrapper scrllbar-style music-box pt-2">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 최근 관심 가수 추천 -->
+                {% if user.is_authenticated %}
+                <br><br><br><br>
+                <div class ="row justify-content-center pt-3">
+                    <div class ='col-12 col-xl-10'>
+                            <h1 class = "melon">최근 관심 가수 추천곡</h1>
+                            <br>
+                            &nbsp;<span style="color:rgba(200, 200, 200)">가장 최근에 플레이리스트에 추가하신 가수의 노래를 추천해드립니다.</span>
+                    </div>
+                </div>
+             
+                <div id='rec_recent_singer' class ="row justify-content-center pt-1">
+                    <div id = "recent_singer_result" class ="col fixed_col_recent_rec mt-4">
+                    </div>
+                    <div id = "recent_singer_song_results" class="col-12 col-xl-9  scrolling-wrapper scrllbar-style music-box pt-2">
+                    </div>
+                </div>
+                <br><br><br><br>
+                {%endif%}
+
+                <!-- als 협업필터링 추천 -->
+                {% if user.is_authenticated %}
+                 <div id="als_recommend" class="row justify-content-center pt-3">
+                    <div class = "col-xl-10 col-12">
+                        <h1 class = "melon">알고리즘 추천 노래</h1>
+                        <br>
+                        &nbsp;<span style="color:rgba(200, 200, 200)">협업필터링 방식으로 {{user.username}}님의 취향에 맞는 노래를 추천해드립니다. </span>
+                        <div class="music-box">
+                            <div id="als_recommend_result"class='d-flex flex-wrap overflow-auto'>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {%endif%}
+
+
+                <!------------ 장르 및 플레이리스트 추천 ------------>
+                <br><br><br><br>
+                <div class="row" style="display: flex; height: 490px;">
+                    <div class="col-xl-1">
+                    </div>
+                    
+                    <div class="col-xl-5" style="height: 100%;">
+                        <div class="card bg-dark bg-opacity-0 mb-5 border-0" style="height: 100%;">
+                            <h1 class = "melon">추천 플레이리스트</h1>
+                            <div class="card-body" style="background: rgba(0, 0, 0, 0.2); " >
+                                 <table style="border-width: 10px; width: 100%;">
+                                    <tr id="tr_1">
+                                        <td rowspan="2" style="width: 55%;">
+                                            <div class="recom_playlist_p">
+                                                <div class="recom_playlist_c" id="recom_playlist_0">
+
+                                                </div>
+                                            </div>
+                                            <div style="text-align: center;" id="recom_playlist_0_title">
+                                                
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="recom_playlist_p">
+                                                <div class="recom_playlist_c" id="recom_playlist_1">
+                                                    
+                                                </div>
+                                            </div>
+                                            <div style="text-align: center;" id="recom_playlist_1_title">
+                                                
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="recom_playlist_p">
+                                                <div class="recom_playlist_c" id="recom_playlist_2">
+                                                   
+                                                </div>
+                                            </div>
+                                            <div style="text-align: center;" id="recom_playlist_2_title">
+                                                
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr id="tr_2">
+                                        <td>
+                                            <div class="recom_playlist_p">
+                                                <div class="recom_playlist_c" id="recom_playlist_3">
+                                                    
+                                                </div>
+                                            </div>
+                                            <div style="text-align: center;" id="recom_playlist_3_title">
+                                                
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="recom_playlist_p">
+                                                <div class="recom_playlist_c" id="recom_playlist_4">
+                                                   
+                                                </div>
+                                            </div>
+                                            <div style="text-align: center;" id="recom_playlist_4_title">
+                                                
+                                            </div>
+                                        </td>
+                                    </tr>
+                                 </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-5" style="height: 100%;">
+                        <div class="card mb-5 bg-dark bg-opacity-0 border-0" style="height: 100%;">   
+                            <h1 class = "melon">추천 플레이리스트 수록곡</h1>
+                            <div class="card-body border-0" id="show_songs" style="background: rgba(0, 0, 0, 0.2); height: 100%; overflow: auto;">
+                            
+                            
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+    <!-- 스크립트 -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+    crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.js"></script>
+    
+    <script type="text/javascript">
+        //최근가수 노래 추천 api call
+        $("#rec_recent_singer").ready(function () {
+      
+        $.ajax({
+            type: "GET",
+            url: "{% url 'api:recent_singer_api'%}", // 통신할 url을 지정
+            dataType: "json",
+            async:  true,
+
+    
+            success: function (response) {
+                artist = response.artists[0]
+                songs = response.songs
+                
+
+                var singercard = '<div class="card bg-dark bg-opacity-0 border-0 ps-1 pe-3" style="width: 12rem;">'
+                singercard += '<img class="card-img-top rounded-circle" src="'+ artist.thumb_url +'" width ="208px" height ="180px" alt="Card image cap">'
+                singercard += '<div class="card-body">'
+                singercard += '<div class = "cut-text text-center">'
+                singercard += '<span>'+ artist.artist_name +'</span></div></div></div>'
+                
+                $("#recent_singer_result").html(singercard);
+                
+               
+                $.each(songs, function(i, song){
+                    
+                    var songcard = '<a class="last_add_singer_song" href="https://www.melon.com/album/detail.htm?albumId='+ song.album_id+'" target="_blank"><div class="card bg-dark bg-opacity-10 border-0 pe-1" style="width: 13rem;">'
+                    songcard += '<img class="card-img-top" src="'+song.thumb_url+'" alt="Card image cap" width ="208px" height = "208px"  onerror="imageOnError(this)";>'
+                    songcard += '<div class="card-body" style="color:white">'
+                    songcard += '<div class = "cut-text text-center">'
+                    songcard += '<span>'+ song.song_name +'</span></div>'
+                    songcard += '<div class ="cut-text text-center" style="font-size: 0.75rem;">'
+                    songcard += '<span>'+ song.artists[0].artist_name +'</span></div></div></div></a>'   
+                    $("#recent_singer_song_results").append(songcard);
+                });
+            },
+            error: function (request, status, error) {
+            $("#rec_recent_singer").html(" ");
+            },
+        });
+        })
+
+        // 태그기반 추천 api call
+        $("#searchBtn").click(function () {
+      
+          var tags = $("#input_tag").val();
+          $.ajax({
+            type: "GET",
+            url: "{% url 'api:tag_search_api'%}?tags="+ tags, // 통신할 url을 지정
+            dataType: "json",
+            async:  true,
+
+            success: function (response) {
+                $("#tag_results").empty();
+                $.each(response, function(i , song) {
+                    var song_small_card = '<a class="tag_search_result" href="https://www.melon.com/album/detail.htm?albumId='+ song.album_id+'" target="_blank"><div class="card bg-dark bg-opacity-0 border-0 pb-1 cut-text" style="width: 19rem;">'
+                    song_small_card += '<div class="d-flex flex-row align-items-center">'
+                    song_small_card += ' <img src="'+song.thumb_url+'" width="50px" height="50px"  onerror="imageOnError(this)";>'
+                    song_small_card += '<div style = "color : white"><div class ="ps-1">'
+                    song_small_card += '<div><span>'+ song.song_name +'</span></div><div><span style="font-size: 0.75rem;">'+ song.artists[0].artist_name+'</span></div>'
+                    song_small_card += '</div></div></div></div></a>'
+                    $("#tag_results").append(song_small_card);
+                });
+            },
+            error: function (request, status, error) {
+              $("#tag_results").html("결과가 없습니다.");
+            },
+          });
+        });
+
+        
+      
+        
+        $(document).ready(function(){
+            // 가수기반 추천 api call
+            $.ajax({
+            type: "GET",
+            url: "{% url 'api:singer_recommend'%}", // 통신할 url을 지정  
+            dataType: "json",
+            async:  true,
+
+            success: function(response) {
+                var artists_dict = response.artists
+                var songs = response.songs
+
+                $.each(artists_dict, function(i, artist){
+                    var singercard = '<div class="card bg-dark bg-opacity-0 border-0 ps-1 pe-3" style="width: 12rem;">'
+                    singercard += '<img class="card-img-top rounded-circle" src="'+ artist.thumb_url +'" width ="208px" height = "180px" alt="Card image cap">'
+                    singercard += '<div class="card-body">'
+                    singercard += '<div class = "cut-text text-center">'
+                    singercard += '<span>'+ artist.artist_name +'</span></div></div></div>'
+                    $("#singer_results").append(singercard);
+                
+                });
+
+                $.each(songs, function(i, song){
+                    var songcard = '<a class="reced_singer_song" href="https://www.melon.com/album/detail.htm?albumId='+ song.album_id+'" target="_blank"><div class="card bg-dark bg-opacity-10 border-0 pe-1" style="width: 13rem;">'
+                    songcard += '<img class="card-img-top" src="'+song.thumb_url+'" alt="Card image cap" width ="208px" height = "208px" onerror="imageOnError(this)";>'
+                    songcard += '<div class="card-body" style="color:white">'
+                    songcard += '<div class = "cut-text text-center">'
+                    songcard += '<span>'+ song.song_name +'</span></div>'
+                    songcard += '<div class ="cut-text text-center" style="font-size: 0.75rem;">'
+                    songcard += '<span>'+ song.artists[0].artist_name +'</span></div></div></div></a>'   
+                    $("#singer_song_results").append(songcard);
+                
+                });
+            },
+            error: function (request, status, error) {
+                $("#singer_results").html("결과가 없습니다.");
+                $("#singer_song_results").html("결과가 없습니다.");
+            },
+          });
+
+          // als 추천 api call
+          $.ajax({
+            type: "GET",
+            url: "{% url 'api:als_recommend_api'%}", // 통신할 url을 지정  
+            dataType: "json",
+            async:  true,
+
+            success: function(response) {
+                if (!response){
+
+                }
+                else {
+                $("#als_recommend_result").empty();
+                $.each(response, function(i, song){
+                    
+                    var song_small_card = '<a class="cf_recommend" href="https://www.melon.com/album/detail.htm?albumId='+ song.album_id+'" target="_blank"><div class="card bg-dark bg-opacity-0 border-0 pb-1 cut-text" style="width: 19rem;">'
+                    song_small_card += '<div class="d-flex flex-row align-items-center">'
+                    song_small_card += ' <img src="'+song.thumb_url+'" width="50px" height="50px"  onerror="imageOnError(this)";>'
+                    song_small_card += '<div style = "color : white"><div class ="ps-1">'
+                    song_small_card += '<div><span>'+ song.song_name +'</span></div><div><span style="font-size: 0.75rem;">'+ song.artists[0].artist_name+'</span></div>'
+                    song_small_card += '</div></div></div></div></a>'
+
+                    $("#als_recommend_result").append(song_small_card);
+                });
+                }
+            },
+            error: function (request, status, error) {
+                $("#als_recommend_result").html("결과가 없습니다.");
+
+            },
+          });
+
+           let trend_songs;
+           let song_display;
+           let trend_page = 0;
+
+           $.ajax({
+            type: "GET",
+            url: "{% url 'api:recently_hot'%}",
+            datatype: 'json',
+            async:  true,
+
+            success: function(response){
+                trend_songs = JSON.parse(response.recently_hot)
+                song_display = trend_songs.slice(0,5)
+                
+                $.load_trend_songs = function(songs_display){
+                    $('#tsong_list').empty(); 
+                    $('#tsong_list').append('<div class="col-md-1"><i class="fas fa-arrow-circle-left fa-3x" id="reduce_button" style="position: relative; top: 30%;"></i></div>')
+                    for (var i =0; i<songs_display.length; i++){
+                        $('#tsong_list').append('<div class="col-md-2"><div><a class="recent_song_rec" href="https://www.melon.com/album/detail.htm?albumId='+songs_display[i]["fields"]["album_id"]+'" target="_blank"><img src='+'"'+songs_display[i]["fields"]["thumb_url"]+'"'+' onerror="imageOnError(this);"'+"style='max-width: 100%; position:relative;  bottom: 4%'"+'></a></div><div class="genre">'+songs_display[i]["fields"]["genre_big_name"]+'</div><div class="artist cut-text"><span>'+songs_display[i]["fields"]["song_name"]+'</span></div><div class="song">'+songs_display[i]["fields"]["artist_name"]+'</div></div>')
+                    }
+                    $('#tsong_list').append('<div class="col-md-1"><i class="fas fa-arrow-circle-right fa-3x" id="increase_button" style="position: relative; top: 30%;"></i></div>')
+                }
+                $.load_trend_songs(song_display)
+                }
+            });
+
+            $.ajax({
+            type: "GET",
+            url: "{% url 'api:tag_recommend'%}",
+            datatype: 'json',
+            async:  true,
+                success: function(response){
+                    let is_login = response.login
+
+                    let recom_tags
+                    recom_tags = response.tags
+
+                    if (is_login === 'yes'){
+                        $('#tag_recom_name').append('<img src="{%static 'images/melon_tags.jpg' %}" style="opacity: 0.8;">')
+                    }
+                    else{
+                        $('#tag_recom_name').append('<img src="{%static 'images/melon_tags_hot.jpg' %}" style="opacity: 0.8;">')
+                    }
+
+                    for (var i =0; i<recom_tags.length; i++){
+                        $('#tag_buttons').append('<button type="button" onclick="tag_btn_click(this.value);" class="btn btn-outline-primary" value="'+recom_tags[i]+'">#'+recom_tags[i]+'</button>')
+                    }
+                } 
+            });
+
+            $.ajax({
+            type: "GET",
+            url: "{% url 'api:my_tag_api'%}",
+            datatype: 'json',
+            async:  true,
+                success: function(response){
+                    let is_login = response.login
+
+                    if (is_login === 'yes'){
+                        console.log(response.my_tag)
+                        $('#mytag').text('당신의 태그  '+response.my_tag.tag+'  와 유사한 태그들입니다')
+                    }
+                    else{
+                        $('#mytag').text('최근 한달간 많이 달린 태그들 입니다.')
+                    }
+                } 
+            });
+
+            // 운채의 플레이리스트 추천 api
+            $.ajax({    
+                type: "GET",
+                url: "{% url 'api:unchae_recommend'%}",
+                datatype: 'json',                
+                    success: function(response){
+
+                        // response를 JSON 파싱
+                        unchae_recommend = JSON.parse(response.unchae_recommend)
+                        
+                        // 플레이리스트는 5개, 플레이리스트당 보여 줄 사진 수는 4개
+                        for (var i=0; i<5; i++){
+                            for(var j=0; j<4; j++){
+
+                                // 데이터는 0~19로 이루어져 있기 때문에 정확한 index를 찾기위해 곱셈연산 필요
+                                index = j+(i*4)
+
+                                // id 문자열 생성
+                                id = "#recom_playlist_"+String(i)
+
+                                // 해당 칸을 클릭하면 playlist_id가 함수로 전달되며 플레이리스트 속 노래를 볼수있는 기능과 연동됨
+                                $(id).append('<div class="unchae_recommend"  onclick="getsongs('+unchae_recommend[index]['fields'].playlist_id+')"><img src="'+unchae_recommend[index]['fields'].thumb_url+'" style="max-width: 100%; position:relative; bottom: 4%; vertical-align:middle;" onerror="imageOnError(this)"></div>')
+                            }
+
+                            // 플레이리스트의 제목
+                            id = "#recom_playlist_"+String(i)+"_title"
+                            $(id).append('<span style="color:white;">'+unchae_recommend[i*4]['fields'].playlist_title+'</span>')
+                        }
+
+                    }
+            });
+
+            // 최신 인기 발매곡 왼쪽버튼을 눌렀을때 동작
+            $(document).on("click","#reduce_button",function(){
+
+                    // 0번페이지에서는 그래도 0부터 5개의 아이템을 보여줌
+                    if (trend_page <= 0){
+
+                        // 0부터 5개의 아이템을 
+                        let temp_display= trend_songs.slice(0,5);
+
+                        // 보여준다.
+                        $.load_trend_songs(temp_display)               
+                    }
+                    // 그렇지 않으면 다음 5개의 아이템을 보여줌
+                    else{
+                        trend_page = trend_page-1
+                        let start = trend_page*5
+                        let end = start+5                        
+                        let temp_display = trend_songs.slice(start,end)
+                        $.load_trend_songs(temp_display)
+                    }
+                });
+
+            $(document).on("click","#increase_button",function(){
+
+                    if (trend_page >=(trend_songs.length/5)-1){
+                        let temp_display= trend_songs.slice(trend_songs.length-5,trend_songs.length+1);
+                        $.load_trend_songs(temp_display)                   
+                    }else{
+                        trend_page = trend_page+1
+                        let start = trend_page*5
+                        let end = start+5
+                        let temp_display= trend_songs.slice(start,end)
+                        
+                        $.load_trend_songs(temp_display)
+                    }                    
+                });
+
+            const rand_0_5 = Math.floor(Math.random() * 6);
+           
+            switch(rand_0_5) {
+                case 0:
+                    $('#input_tag').attr("placeholder","오늘은 어떤 기분이신가요?");                 
+                    break;
+                case 1:
+                    $('#input_tag').attr("placeholder","지금 뭐하고 계신가요?");
+                    break;
+                case 2:
+                    $('#input_tag').attr("placeholder","오늘을 한 마디로 표현하자면?");
+                    break;
+                case 3:
+                    $('#input_tag').attr("placeholder","당신은 어떤 가수를 좋아하나요?");
+                    break;
+                case 4:
+                    $('#input_tag').attr("placeholder","당신은 어떤 가수를 좋아하나요?");
+                    break;
+                default:
+                    $('#input_tag').attr("placeholder","태그를 입력해 주세요");
+                    break;
+
+            }
+
+        });
+
+      </script>
+
+{%endblock%}
